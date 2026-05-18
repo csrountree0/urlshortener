@@ -46,12 +46,13 @@ public class Analytics {
 
     public Analytics() {}
 
-    public Analytics(UrlMapping urlMapping, String ipAddress, String deviceType, String browser, String referrer) {
+    public Analytics(UrlMapping urlMapping, String ipAddress, String deviceType, String browser, String referrer, String country) {
         this.urlMapping = urlMapping;
         this.ipAddress = ipAddress;
         this.deviceType = deviceType;
         this.browser = browser;
         this.referrer = referrer;
+        this.country = country;
     }
 
     public Long getId() { return id; }

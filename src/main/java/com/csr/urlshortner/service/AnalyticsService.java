@@ -1,12 +1,18 @@
 package com.csr.urlshortner.service;
 
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.csr.urlshortner.entity.Analytics;
 import com.csr.urlshortner.entity.UrlMapping;
 import com.csr.urlshortner.repository.AnalyticsRepository;
 import com.csr.urlshortner.repository.UrlMappingRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.List;
 
 @Service
@@ -14,10 +20,18 @@ public class AnalyticsService {
 
     private final AnalyticsRepository analyticsRepository;
     private final UrlMappingRepository urlMappingRepository;
+    private DatabaseReader geoReader;
 
     public AnalyticsService(AnalyticsRepository analyticsRepository, UrlMappingRepository urlMappingRepository) {
         this.analyticsRepository = analyticsRepository;
         this.urlMappingRepository = urlMappingRepository;
+    }
+
+    @PostConstruct
+    public void initGeoReader() throws IOException {
+        geoReader = new DatabaseReader.Builder(
+            new ClassPathResource("GeoLite2-Country.mmdb").getInputStream()
+        ).build();
     }
 
     @Transactional
@@ -27,8 +41,19 @@ public class AnalyticsService {
             ipAddress,
             parseDeviceType(userAgent),
             parseBrowser(userAgent),
-            referrer != null ? referrer : "direct"
+            referrer != null ? referrer : "direct",
+            lookupCountry(ipAddress)
         ));
+    }
+
+    private String lookupCountry(String ipAddress) {
+        if (ipAddress == null) return "unknown";
+        try {
+            InetAddress addr = InetAddress.getByName(ipAddress.split(",")[0].trim());
+            return geoReader.country(addr).getCountry().getName();
+        } catch (IOException | GeoIp2Exception e) {
+            return "unknown";
+        }
     }
 
     public List<Analytics> getClicksForToken(String analyticsToken) {

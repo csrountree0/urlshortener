@@ -87,7 +87,7 @@ class AnalyticsServiceTest {
     // Valid token returns all click records for that link
     @Test
     void getClicksForToken_returnsClicks_whenTokenFound() {
-        Analytics click = new Analytics(urlMapping, "1.2.3.4", "desktop", "Chrome", "direct");
+        Analytics click = new Analytics(urlMapping, "1.2.3.4", "desktop", "Chrome", "direct", "United States");
         when(urlMappingRepository.findByAnalyticsToken("token123")).thenReturn(Optional.of(urlMapping));
         when(analyticsRepository.findByUrlMapping(urlMapping)).thenReturn(List.of(click));
 

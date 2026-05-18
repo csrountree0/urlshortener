@@ -7,15 +7,15 @@ public class ShortenResponse {
     private String originalUrl;
     private String shortCode;
     private String shortUrl;
-    private String analyticsToken;
+    private String analyticsUrl;
     private LocalDateTime createdAt;
 
     public ShortenResponse(){}
-    public ShortenResponse(String oUrl, String sCode, String sUrl, String aToken, LocalDateTime cAt){
+    public ShortenResponse(String oUrl, String sCode, String sUrl, String aUrl, LocalDateTime cAt){
         originalUrl = oUrl;
         shortCode = sCode;
         shortUrl = sUrl;
-        analyticsToken = aToken;
+        analyticsUrl = aUrl;
         createdAt = cAt;
     }
 
@@ -28,8 +28,8 @@ public class ShortenResponse {
     public String getShortUrl() { return shortUrl; }
     public void setShortUrl(String shortUrl) { this.shortUrl = shortUrl; }
 
-    public String getAnalyticsToken() { return analyticsToken; }
-    public void setAnalyticsToken(String analyticsToken) { this.analyticsToken = analyticsToken; }
+    public String getAnalyticsUrl() { return analyticsUrl; }
+    public void setAnalyticsUrl(String analyticsUrl) { this.analyticsUrl = analyticsUrl; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

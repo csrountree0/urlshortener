@@ -2,6 +2,7 @@ package com.csr.urlshortner.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -13,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.csr.urlshortner.dto.AnalyticsResponse;
 import com.csr.urlshortner.dto.ShortenRequest;
 import com.csr.urlshortner.dto.ShortenResponse;
-import com.csr.urlshortner.entity.Analytics;
 import com.csr.urlshortner.entity.UrlMapping;
 import com.csr.urlshortner.service.AnalyticsService;
 import com.csr.urlshortner.service.UrlService;
@@ -41,7 +42,7 @@ public class UrlController {
             mapping.getOriginalUrl(),
             mapping.getShortCode(),
             baseUrl + "/" + mapping.getShortCode(),
-            mapping.getAnalyticsToken(),
+            baseUrl + "/analytics/" + mapping.getAnalyticsToken(),
             mapping.getCreatedAt()
         );
 
@@ -51,12 +52,14 @@ public class UrlController {
     @GetMapping("/{shortCode}")
     public ResponseEntity<Void> redirect(
             @PathVariable String shortCode,
-            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String forwardedIp,
             @RequestHeader(value = "User-Agent", required = false) String userAgent,
             @RequestHeader(value = "Referer", required = false) String referrer) {
 
+        if (shortCode.equals("favicon.ico")) return ResponseEntity.notFound().build();
+
         UrlMapping mapping = urlService.getOriginalUrl(shortCode);
-        analyticsService.recordClick(mapping, ipAddress, userAgent, referrer);
+        analyticsService.recordClick(mapping, forwardedIp, userAgent, referrer);
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .location(URI.create(mapping.getOriginalUrl()))
@@ -64,8 +67,20 @@ public class UrlController {
     }
 
     @GetMapping("/analytics/{token}")
-    public ResponseEntity<List<Analytics>> getAnalytics(@PathVariable String token) {
-        return ResponseEntity.ok(analyticsService.getClicksForToken(token));
+    public ResponseEntity<List<AnalyticsResponse>> getAnalytics(@PathVariable String token) {
+        return ResponseEntity.ok(
+            analyticsService.getClicksForToken(token).stream()
+                .map(a -> new AnalyticsResponse(
+                    a.getUrlMapping().getOriginalUrl(),
+                    a.getIpAddress(),
+                    a.getClickedAt(),
+                    a.getDeviceType(),
+                    a.getBrowser(),
+                    a.getReferrer(),
+                    a.getCountry()
+                ))
+                .collect(Collectors.toList())
+        );
     }
 
 }
