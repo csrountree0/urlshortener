@@ -25,6 +25,12 @@ public class UrlMapping {
     @Column(nullable=false, unique=true)
     private String shortCode;
 
+    @Column(nullable=false, unique=true)
+    private String analyticsToken;
+
+    @Column(nullable=false)
+    private LocalDateTime expiresAt;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -36,6 +42,12 @@ public class UrlMapping {
 
     public String getShortCode() { return shortCode; }
     public void setShortCode(String shortCode) { this.shortCode = shortCode; }
+
+    public String getAnalyticsToken() { return analyticsToken; }
+    public void setAnalyticsToken(String analyticsToken) { this.analyticsToken = analyticsToken; }
+
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 

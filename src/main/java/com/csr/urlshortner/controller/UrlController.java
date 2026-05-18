@@ -29,12 +29,13 @@ public class UrlController {
 
     @PostMapping("/api/urls")
     public ResponseEntity<ShortenResponse> createShortUrl(@RequestBody ShortenRequest request) {
-        UrlMapping mapping = urlService.createShortUrl(request.getOriginalUrl());
+        UrlMapping mapping = urlService.createShortUrl(request.getOriginalUrl(), request.getExpiresAt());
   
         ShortenResponse response = new ShortenResponse(
             mapping.getOriginalUrl(),
             mapping.getShortCode(),
-            (baseUrl+ "/" + mapping.getShortCode()),
+            baseUrl + "/" + mapping.getShortCode(),
+            mapping.getAnalyticsToken(),
             mapping.getCreatedAt()
         );
 
