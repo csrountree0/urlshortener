@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +32,9 @@ class AnalyticsServiceTest {
     @Mock
     private UrlMappingRepository urlMappingRepository;
 
+    @Mock
+    private GeoLocationService geoLocationService;
+
     @InjectMocks
     private AnalyticsService analyticsService;
 
@@ -41,6 +46,7 @@ class AnalyticsServiceTest {
         urlMapping.setShortCode("abc12345");
         urlMapping.setOriginalUrl("https://example.com");
         urlMapping.setAnalyticsToken("token123");
+        lenient().when(geoLocationService.lookupCountry(any())).thenReturn("United States");
     }
 
     // Records a click with correct device type and browser parsed from User-Agent
