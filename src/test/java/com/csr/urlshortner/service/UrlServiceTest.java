@@ -1,5 +1,6 @@
 package com.csr.urlshortner.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,7 @@ class UrlServiceTest {
         savedMapping = new UrlMapping();
         savedMapping.setOriginalUrl("https://example.com");
         savedMapping.setShortCode("abc12345");
+        savedMapping.setExpiresAt(LocalDateTime.now().plusDays(7));
     }
 
     // Happy path: no collision, service saves the mapping and returns it
@@ -45,7 +47,7 @@ class UrlServiceTest {
         when(repository.findByShortCode(anyString())).thenReturn(Optional.empty());
         when(repository.save(any(UrlMapping.class))).thenReturn(savedMapping);
 
-        UrlMapping result = urlService.createShortUrl("https://example.com");
+        UrlMapping result = urlService.createShortUrl("https://example.com", null);
 
         assertEquals("https://example.com", result.getOriginalUrl());
         assertNotNull(result.getShortCode());
@@ -63,7 +65,7 @@ class UrlServiceTest {
             .thenReturn(Optional.empty());
         when(repository.save(any(UrlMapping.class))).thenReturn(savedMapping);
 
-        UrlMapping result = urlService.createShortUrl("https://example.com");
+        UrlMapping result = urlService.createShortUrl("https://example.com", null);
 
         assertNotNull(result);
         verify(repository, times(2)).findByShortCode(anyString());
@@ -86,6 +88,16 @@ class UrlServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> urlService.getOriginalUrl("missing"));
         assertTrue(ex.getMessage().contains("missing"));
+    }
+
+    // Expired: short code exists but past its expiry date, service throws RuntimeException
+    @Test
+    void getOriginalUrl_throwsException_whenExpired() {
+        savedMapping.setExpiresAt(LocalDateTime.now().minusDays(1));
+        when(repository.findByShortCode("abc12345")).thenReturn(Optional.of(savedMapping));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> urlService.getOriginalUrl("abc12345"));
+        assertTrue(ex.getMessage().contains("expired"));
     }
 
 }

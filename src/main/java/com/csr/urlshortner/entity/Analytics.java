@@ -44,6 +44,16 @@ public class Analytics {
     @Column
     private String referrer;
 
+    public Analytics() {}
+
+    public Analytics(UrlMapping urlMapping, String ipAddress, String deviceType, String browser, String referrer) {
+        this.urlMapping = urlMapping;
+        this.ipAddress = ipAddress;
+        this.deviceType = deviceType;
+        this.browser = browser;
+        this.referrer = referrer;
+    }
+
     public Long getId() { return id; }
 
     public UrlMapping getUrlMapping() { return urlMapping; }
