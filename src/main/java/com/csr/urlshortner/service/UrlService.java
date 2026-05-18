@@ -18,7 +18,6 @@ public class UrlService {
     }
 
     public UrlMapping createShortUrl(String originalUrl) {
-        
         String shortCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         while(repository.findByShortCode(shortCode).isPresent()){
             shortCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
@@ -32,7 +31,9 @@ public class UrlService {
 
     @Transactional
     public UrlMapping getOriginalUrl(String shortCode) {
-        return repository.findByShortCode(shortCode).orElseThrow(()->new RuntimeException("Shortcode not found: " + shortCode));
+        return repository.findByShortCode(shortCode).orElseThrow(
+            () -> new RuntimeException("Shortcode not found: " + shortCode)
+        );
     }
 
 }
