@@ -20,6 +20,8 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.csr.urlshortner.entity.UrlMapping;
+import com.csr.urlshortner.exception.ShortCodeExpiredException;
+import com.csr.urlshortner.exception.ShortCodeNotFoundException;
 import com.csr.urlshortner.repository.UrlMappingRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,22 +83,22 @@ class UrlServiceTest {
         assertEquals("https://example.com", result.getOriginalUrl());
     }
 
-    // Not found: short code doesn't exist, service throws RuntimeException
+    // Not found: short code doesn't exist, service throws ShortCodeNotFoundException
     @Test
     void getOriginalUrl_throwsException_whenNotFound() {
         when(repository.findByShortCode("missing")).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> urlService.getOriginalUrl("missing"));
+        ShortCodeNotFoundException ex = assertThrows(ShortCodeNotFoundException.class, () -> urlService.getOriginalUrl("missing"));
         assertTrue(ex.getMessage().contains("missing"));
     }
 
-    // Expired: short code exists but past its expiry date, service throws RuntimeException
+    // Expired: short code exists but past its expiry date, service throws ShortCodeExpiredException
     @Test
     void getOriginalUrl_throwsException_whenExpired() {
         savedMapping.setExpiresAt(LocalDateTime.now().minusDays(1));
         when(repository.findByShortCode("abc12345")).thenReturn(Optional.of(savedMapping));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> urlService.getOriginalUrl("abc12345"));
+        ShortCodeExpiredException ex = assertThrows(ShortCodeExpiredException.class, () -> urlService.getOriginalUrl("abc12345"));
         assertTrue(ex.getMessage().contains("expired"));
     }
 

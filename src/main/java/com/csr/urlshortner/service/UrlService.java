@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.csr.urlshortner.entity.UrlMapping;
+import com.csr.urlshortner.exception.ShortCodeExpiredException;
+import com.csr.urlshortner.exception.ShortCodeNotFoundException;
 import com.csr.urlshortner.repository.UrlMappingRepository;
 
 @Service
@@ -41,12 +43,11 @@ public class UrlService {
 
     @Transactional
     public UrlMapping getOriginalUrl(String shortCode) {
-        UrlMapping mapping = repository.findByShortCode(shortCode).orElseThrow(
-            () -> new RuntimeException("Short code not found: " + shortCode)
-        );
+        UrlMapping mapping = repository.findByShortCode(shortCode)
+            .orElseThrow(() -> new ShortCodeNotFoundException(shortCode));
 
         if (mapping.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Short code has expired: " + shortCode);
+            throw new ShortCodeExpiredException(shortCode);
         }
 
         return mapping;
