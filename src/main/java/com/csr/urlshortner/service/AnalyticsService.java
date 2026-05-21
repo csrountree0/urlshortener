@@ -1,6 +1,7 @@
 package com.csr.urlshortner.service;
 
 import com.csr.urlshortner.dto.GlobalAnalyticsResponse;
+import com.csr.urlshortner.dto.GlobalAnalyticsResponse.RecentClick;
 import com.csr.urlshortner.entity.Analytics;
 import com.csr.urlshortner.entity.UrlMapping;
 import com.csr.urlshortner.repository.AnalyticsRepository;
@@ -18,25 +19,34 @@ public class AnalyticsService {
     private final AnalyticsRepository analyticsRepository;
     private final UrlMappingRepository urlMappingRepository;
     private final GeoLocationService geoLocationService;
+    private final SseService sseService;
 
     public AnalyticsService(AnalyticsRepository analyticsRepository,
                             UrlMappingRepository urlMappingRepository,
-                            GeoLocationService geoLocationService) {
+                            GeoLocationService geoLocationService,
+                            SseService sseService) {
         this.analyticsRepository = analyticsRepository;
         this.urlMappingRepository = urlMappingRepository;
         this.geoLocationService = geoLocationService;
+        this.sseService = sseService;
     }
 
     @Transactional
     public void recordClick(UrlMapping urlMapping, String ipAddress, String userAgent, String referrer) {
+        String deviceType = parseDeviceType(userAgent);
+        String browser = parseBrowser(userAgent);
+        String country = geoLocationService.lookupCountry(ipAddress);
+
         analyticsRepository.save(new Analytics(
             urlMapping,
             ipAddress,
-            parseDeviceType(userAgent),
-            parseBrowser(userAgent),
+            deviceType,
+            browser,
             referrer != null ? referrer : "direct",
-            geoLocationService.lookupCountry(ipAddress)
+            country
         ));
+
+        sseService.pushClick(new RecentClick(country, deviceType + "/" + browser, java.time.LocalDateTime.now()));
     }
 
     public List<Analytics> getClicksForToken(String analyticsToken) {

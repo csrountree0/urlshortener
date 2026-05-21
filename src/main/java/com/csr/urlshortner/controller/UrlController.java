@@ -20,7 +20,9 @@ import com.csr.urlshortner.dto.ShortenRequest;
 import com.csr.urlshortner.dto.ShortenResponse;
 import com.csr.urlshortner.entity.UrlMapping;
 import com.csr.urlshortner.service.AnalyticsService;
+import com.csr.urlshortner.service.SseService;
 import com.csr.urlshortner.service.UrlService;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 public class UrlController {
@@ -29,10 +31,12 @@ public class UrlController {
     private String baseUrl;
     private final UrlService urlService;
     private final AnalyticsService analyticsService;
+    private final SseService sseService;
 
-    public UrlController(UrlService urlService, AnalyticsService analyticsService) {
+    public UrlController(UrlService urlService, AnalyticsService analyticsService, SseService sseService) {
         this.urlService = urlService;
         this.analyticsService = analyticsService;
+        this.sseService = sseService;
     }
 
     @PostMapping("/api/urls")
@@ -70,6 +74,11 @@ public class UrlController {
     @GetMapping("/analytics/global")
     public ResponseEntity<GlobalAnalyticsResponse> getGlobalAnalytics() {
         return ResponseEntity.ok(analyticsService.getGlobalAnalytics());
+    }
+
+    @GetMapping(value = "/analytics/stream", produces = "text/event-stream")
+    public SseEmitter streamClicks() {
+        return sseService.register();
     }
 
     @GetMapping("/analytics/{token}")
