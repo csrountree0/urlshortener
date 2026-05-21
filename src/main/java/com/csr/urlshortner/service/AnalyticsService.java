@@ -1,5 +1,6 @@
 package com.csr.urlshortner.service;
 
+import com.csr.urlshortner.dto.GlobalAnalyticsResponse;
 import com.csr.urlshortner.entity.Analytics;
 import com.csr.urlshortner.entity.UrlMapping;
 import com.csr.urlshortner.repository.AnalyticsRepository;
@@ -7,7 +8,9 @@ import com.csr.urlshortner.repository.UrlMappingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AnalyticsService {
@@ -46,6 +49,29 @@ public class AnalyticsService {
         UrlMapping mapping = urlMappingRepository.findByAnalyticsToken(analyticsToken)
             .orElseThrow(() -> new RuntimeException("Analytics token not found: " + analyticsToken));
         return analyticsRepository.countByUrlMapping(mapping);
+    }
+
+    public GlobalAnalyticsResponse getGlobalAnalytics() {
+        long totalLinks = urlMappingRepository.count();
+
+        long linksCreatedLastHour = urlMappingRepository.countByCreatedAtAfter(LocalDateTime.now().minusHours(1));
+
+        List<GlobalAnalyticsResponse.RecentClick> recentActivity = analyticsRepository
+            .findTop20ByOrderByClickedAtDesc()
+            .stream()
+            .map(a -> new GlobalAnalyticsResponse.RecentClick(
+                a.getCountry(),
+                a.getDeviceType() + "/" + a.getBrowser(),
+                a.getClickedAt()
+            ))
+            .collect(Collectors.toList());
+
+        List<Object[]> countryCounts = analyticsRepository.countGroupedByCountry();
+        String topCountry = countryCounts.isEmpty() ? "N/A" : (String) countryCounts.get(0)[0];
+
+        long clicksLastMinute = analyticsRepository.countByClickedAtAfter(LocalDateTime.now().minusMinutes(1));
+
+        return new GlobalAnalyticsResponse(totalLinks, linksCreatedLastHour, recentActivity, topCountry, clicksLastMinute);
     }
 
     private String parseDeviceType(String userAgent) {

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.csr.urlshortner.dto.AnalyticsResponse;
+import com.csr.urlshortner.dto.GlobalAnalyticsResponse;
 import com.csr.urlshortner.dto.ShortenRequest;
 import com.csr.urlshortner.dto.ShortenResponse;
 import com.csr.urlshortner.entity.UrlMapping;
@@ -64,6 +65,11 @@ public class UrlController {
         return ResponseEntity.status(HttpStatus.FOUND)
             .location(URI.create(mapping.getOriginalUrl()))
             .build();
+    }
+
+    @GetMapping("/analytics/global")
+    public ResponseEntity<GlobalAnalyticsResponse> getGlobalAnalytics() {
+        return ResponseEntity.ok(analyticsService.getGlobalAnalytics());
     }
 
     @GetMapping("/analytics/{token}")

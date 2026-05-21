@@ -14,4 +14,6 @@ public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
     Optional<UrlMapping> findByShortCode(String shortCode);
     Optional<UrlMapping> findByAnalyticsToken(String analyticsToken);
     List<UrlMapping> findByExpiresAtBefore(LocalDateTime dateTime);
+
+    long countByCreatedAtAfter(LocalDateTime since);
 }
